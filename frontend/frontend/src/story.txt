@@ -1,0 +1,30 @@
+main.tsx
+   ↓
+App.tsx
+   ↓
+routes.tsx
+   ↓
+ProtectedRoute.tsx
+   ↓
+Dashboard
+
+
+
+>>>>>>>>>>>>>>>>>>>>>>>>
+Login page
+   ↓
+handleLogin()
+   ↓
+login(user)
+   ↓
+AuthContext saves user
+   ↓
+ProtectedRoute checks user
+   ↓
+Dashboard opens
+
+>i wrote basic code for all files 
+>then worked with login page i tried login the page if i referesh it used logout then updated code with data storage of login in local storeage
+>then came with home page dashboard of basic navbar with logout button where i can logout the acc 
+>i connected frontend with backend using fastAPI unicorn and i faced issues cors and i fixed it and login with fake credentions for now with admin@gmail.com and pass 1234 
+>>>>> this is for day1(jan 16) tomorrow i understand and learn about db topics 
