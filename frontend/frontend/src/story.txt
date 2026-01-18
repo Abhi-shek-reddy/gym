@@ -28,3 +28,15 @@ Dashboard opens
 >then came with home page dashboard of basic navbar with logout button where i can logout the acc 
 >i connected frontend with backend using fastAPI unicorn and i faced issues cors and i fixed it and login with fake credentions for now with admin@gmail.com and pass 1234 
 >>>>> this is for day1(jan 16) tomorrow i understand and learn about db topics 
+
+//day2
+>connected database to backend using database.py file 
+>NEXT i CHANGED passwords plain data inyo  hash passwords useing jwt token i (need learn this topic and understand)
+>>What you learned✔ Password hashing✔ JWT token✔ Secure login✔ Industry standard flow
+>Backend opens gate (CORS) 🚪
+
+User registers → password hidden → saved
+
+User logs in → DB checked → token given 🎫
+
+User calls private API → token checked → allowed/blocked

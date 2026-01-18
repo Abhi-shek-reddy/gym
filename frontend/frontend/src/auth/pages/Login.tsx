@@ -7,7 +7,6 @@ import { useState } from "react";
 import { loginApi } from "../services/authApi";
 
 export default function Login() {
-
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -15,21 +14,16 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-
-    // Send data to backend
-    const res = await loginApi({
-      email,
-      password,
-    });
+    const res = await loginApi({ email, password });
 
     if (res.data.status === "success") {
+      // Save token
+      localStorage.setItem("token", res.data.token);
 
       // Save user
       login(res.data.user);
 
-      // Go dashboard
       navigate("/dashboard");
-
     } else {
       alert("Invalid login ❌");
     }
@@ -39,10 +33,7 @@ export default function Login() {
     <div>
       <h2>Gym Login 🏋️</h2>
 
-      <input
-        placeholder="Email"
-        onChange={(e) => setEmail(e.target.value)}
-      />
+      <input placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
 
       <br />
 
@@ -54,9 +45,7 @@ export default function Login() {
 
       <br />
 
-      <button onClick={handleLogin}>
-        Login
-      </button>
+      <button onClick={handleLogin}>Login</button>
     </div>
   );
 }
@@ -66,3 +55,7 @@ export default function Login() {
 // Clicks login
 // App saves user
 // Sends them to dashboard
+
+//day2 
+// Backend gives ID card
+// Frontend stores in wallet (localStorage)

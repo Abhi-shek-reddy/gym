@@ -1,8 +1,21 @@
 import axios from "axios";
 
-// Backend address
 const api = axios.create({
   baseURL: "http://127.0.0.1:8000",
+});
+
+// This runs before EVERY request
+api.interceptors.request.use((config) => {
+
+  // Get ID card from wallet
+  const token = localStorage.getItem("token");
+
+  if (token) {
+    config.headers.Authorization =
+      `Bearer ${token}`;
+  }
+
+  return config;
 });
 
 export default api;
