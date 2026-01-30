@@ -1,55 +1,77 @@
-# This file is our SECURITY OFFICE 🔐
-# It handles:
-# - password hiding
-# - token creation
+# -------------------------------------------------
+# security.py 🔐
+# This file is the "security guard" of our app
+# -------------------------------------------------
 
-from passlib.context import CryptContext
-from jose import jwt
-from datetime import datetime, timedelta
+import hashlib
+import hmac
+import time
+import base64
+import json
 
-# Password hasher machine
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# A secret key known only to the server
+# (like a private stamp the server uses)
+SECRET_KEY = "gym_super_secret_key"
 
-# Secret key (keep this secret!)
-SECRET_KEY = "gym_super_secret"
-ALGORITHM = "HS256"
 
-# -------------------------
-# Hide password
-# -------------------------
-def hash_password(password: str):
+def hash_password(password: str) -> str:
     """
-    This function:
-    - Takes real password
-    - Converts to random text
-    - So no one can read it
+    STORY:
+    User gives us a plain password (1234).
+    We NEVER store it directly.
+    We convert it into a scrambled version (hash).
     """
-    return pwd_context.hash(password)
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
 
-# -------------------------
-# Check password
-# -------------------------
-def verify_password(real, hashed):
+
+def verify_password(plain: str, hashed: str) -> bool:
     """
-    Compares:
-    - User password
-    - DB password
+    STORY:
+    - User tries to login
+    - We hash the entered password again
+    - Compare it with stored hash
     """
-    return pwd_context.verify(real, hashed)
+    return hmac.compare_digest(
+        hash_password(plain),
+        hashed
+    )
 
-# -------------------------
-# Create token
-# -------------------------
-def create_token(data: dict):
+
+def create_token(email: str) -> str:
     """
-    This creates:
-    - digital ID card 🎫
+    STORY:
+    This function creates a LOGIN TOKEN 🎟️
+
+    Think of it like:
+    - Gym issues a membership card
+    - Card contains member info + timestamp
+    - Card is signed by the gym (SECRET_KEY)
     """
 
-    expire = datetime.utcnow() + timedelta(minutes=30)
+    payload = {
+        "email": email,
+        "issued_at": int(time.time())
+    }
 
-    data.update({"exp": expire})
+    # Convert payload to JSON → bytes
+    payload_bytes = json.dumps(payload).encode("utf-8")
 
-    token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
+    # Sign the payload using secret key
+    signature = hmac.new(
+        SECRET_KEY.encode("utf-8"),
+        payload_bytes,
+        hashlib.sha256
+    ).hexdigest()
+
+    # Combine payload + signature
+    token_data = {
+        "payload": payload,
+        "signature": signature
+    }
+
+    # Encode as base64 so it looks like a token
+    token = base64.urlsafe_b64encode(
+        json.dumps(token_data).encode("utf-8")
+    ).decode("utf-8")
 
     return token

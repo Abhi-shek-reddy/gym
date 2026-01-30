@@ -8,7 +8,7 @@ export default function ProtectedRoute({ children }: any) {
 
   // Ask the security system:
   // "Is anyone logged in?"
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: any };
 
   /*
     If no user found:

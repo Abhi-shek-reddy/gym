@@ -29,6 +29,7 @@ from datetime import datetime
 from database import cursor, conn
 from security import hash_password, verify_password, create_token
 from auth_guard import verify_token
+from members import router as members_router
 
 
 # -------------------------
@@ -60,7 +61,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+app.include_router(members_router)
 # -------------------------
 # 🏥 HEALTH CHECK API
 # -------------------------

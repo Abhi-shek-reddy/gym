@@ -1,36 +1,45 @@
-# This file is the SECURITY CHECKPOINT 🛂
-# Every private API must pass through here
+# -------------------------------------------------
+# auth_guard.py 🛡️
+# This file protects private routes
+# -------------------------------------------------
 
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import jwt
-from security import SECRET_KEY, ALGORITHM
+import base64
+import json
+import hmac
+import hashlib
 
-security = HTTPBearer()
+SECRET_KEY = "gym_super_secret_key"
 
-def verify_token(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-):
+
+def verify_token(token: str):
     """
-    This function:
-    1. Reads token from request header
-    2. Checks if token is valid
-    3. Allows or blocks user
+    STORY:
+    - User sends token in request header
+    - We decode it
+    - We verify the signature
+    - If valid → allow access
     """
-
-    token = credentials.credentials
 
     try:
-        # Decode ID card 🎫
-        payload = jwt.decode(
-            token,
-            SECRET_KEY,
-            algorithms=[ALGORITHM]
-        )
-        return payload
+        # Decode base64 token
+        decoded = base64.urlsafe_b64decode(token).decode("utf-8")
+        token_data = json.loads(decoded)
 
-    except:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired token ❌"
-        )
+        payload = token_data["payload"]
+        signature = token_data["signature"]
+
+        # Recreate signature
+        payload_bytes = json.dumps(payload).encode("utf-8")
+        expected_signature = hmac.new(
+            SECRET_KEY.encode("utf-8"),
+            payload_bytes,
+            hashlib.sha256
+        ).hexdigest()
+
+        if signature != expected_signature:
+            return None
+
+        return payload  # token is valid
+
+    except Exception:
+        return None
