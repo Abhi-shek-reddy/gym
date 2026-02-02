@@ -98,3 +98,60 @@ def add_member(data: dict, request: Request):
     conn.commit()
 
     return {"message": "Member added successfully 💪"}
+# -----------------------------------
+# UPDATE MEMBER ✏️
+# -----------------------------------
+@router.put("/members/{member_id}")
+def update_member(member_id: int, data: dict, request: Request):
+    """
+    STORY:
+    - Admin edits a member
+    - Token is verified
+    - Member details are updated
+    """
+
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    token = auth_header.replace("Bearer ", "")
+    if not verify_token(token):
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    cursor.execute(
+        """
+        UPDATE members
+        SET name = ?, phone = ?, plan = ?
+        WHERE id = ?
+        """,
+        (data["name"], data["phone"], data["plan"], member_id)
+    )
+    conn.commit()
+
+    return {"message": "Member updated successfully ✏️"}
+
+
+# -----------------------------------
+# DELETE MEMBER 🗑️
+# -----------------------------------
+@router.delete("/members/{member_id}")
+def delete_member(member_id: int, request: Request):
+    """
+    STORY:
+    - Admin removes a member
+    - Token is verified
+    - Member is deleted from DB
+    """
+
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    token = auth_header.replace("Bearer ", "")
+    if not verify_token(token):
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    cursor.execute("DELETE FROM members WHERE id = ?", (member_id,))
+    conn.commit()
+
+    return {"message": "Member deleted successfully 🗑️"}
