@@ -3,24 +3,21 @@
 // --------------------------------------------------
 //
 // STORY:
-// This file is the SECURITY OFFICE of our application.
+// This file is the SECURITY OFFICE of the app.
 //
-// Imagine a real gym 🏋️‍♂️
-// - This office knows who is a member
-// - Who is inside the gym
-// - Who logged out
+// It remembers:
+// - Who is logged in
+// - What token they have
 //
-// Every page in the app can ask this office:
-// 👉 "Is the user logged in?"
-// 👉 "Who is the user?"
-// 👉 "Please log this user out"
+// It also controls:
+// - Login
+// - Logout
+//
+// Every protected page talks to this file.
 // --------------------------------------------------
 
 import { createContext, useContext, useState } from "react";
 
-// --------------------------------------------------
-// Types (what data this office manages)
-// --------------------------------------------------
 type User = {
   email: string;
 };
@@ -28,37 +25,20 @@ type User = {
 type AuthContextType = {
   user: User | null;
   token: string | null;
-  isAuthenticated: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
 };
 
-// --------------------------------------------------
-// Create the AuthContext (empty office initially)
-// --------------------------------------------------
+// Create empty security office
 const AuthContext = createContext<AuthContextType | null>(null);
 
-// --------------------------------------------------
-// AuthProvider 🏢
-// --------------------------------------------------
-// This wraps the entire app and provides auth data
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  /*
-    STORY:
-    When the app loads or refreshes,
-    we check localStorage.
-
-    If a token exists:
-    - User was already logged in earlier
-    - Keep them logged in
-
-    If not:
-    - User is outside the gym
-  */
-
+  // ------------------------------------------------
+  // STEP 1️⃣: Load saved data (if page refresh)
+  // ------------------------------------------------
   const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
+    const saved = localStorage.getItem("user");
+    return saved ? JSON.parse(saved) : null;
   });
 
   const [token, setToken] = useState<string | null>(() => {
@@ -66,33 +46,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   // ------------------------------------------------
-  // LOGIN 🎟️
+  // STEP 2️⃣: LOGIN
   // ------------------------------------------------
-  const login = (userData: User, tokenData: string) => {
+  const login = (user: User, token: string) => {
     /*
       STORY:
-      - Backend verified user
-      - Backend gave us a TOKEN (membership card 🎟️)
+      - Backend gives ID card (token)
       - We store it safely
     */
 
-    setUser(userData);
-    setToken(tokenData);
+    setUser(user);
+    setToken(token);
 
-    // Store in browser so refresh doesn't log user out
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", tokenData);
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("token", token);
   };
 
   // ------------------------------------------------
-  // LOGOUT 🚪
+  // STEP 3️⃣: LOGOUT 🚪
   // ------------------------------------------------
   const logout = () => {
     /*
       STORY:
       - User leaves the gym
-      - We destroy their membership session
-      - Security forgets them
+      - We destroy ID card
+      - Security forgets user
     */
 
     setUser(null);
@@ -102,52 +80,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("token");
   };
 
-  // ------------------------------------------------
-  // Value shared with entire app
-  // ------------------------------------------------
-  const value: AuthContextType = {
-    user,
-    token,
-    isAuthenticated: !!token,
-    login,
-    logout,
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// --------------------------------------------------
-// useAuth 🧠
-// --------------------------------------------------
-// This is a helper hook so pages can easily
-// talk to the Security Office
+// Hook used by pages
 export function useAuth() {
-  const context = useContext(AuthContext);
-
-  if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
-  }
-
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
 }
-
-// --------------------------------------------------
-// FINAL STORY SUMMARY 📖
-//
-// AuthContext = Security Office 🔐
-// AuthProvider = Office building 🏢
-// useAuth() = Phone call to security
-//
-// Responsibilities:
-// ✅ Store user
-// ✅ Store token
-// ✅ Remember login after refresh
-// ✅ Provide login/logout functions
-//
-// Pages should NEVER touch localStorage directly.
-// They always talk to AuthContext.
-// --------------------------------------------------

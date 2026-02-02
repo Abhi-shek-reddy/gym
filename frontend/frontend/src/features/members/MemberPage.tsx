@@ -7,44 +7,49 @@
 // This file represents the MEMBERS ROOM of the gym.
 //
 // Only logged-in users can enter this room.
-// (ProtectedRoute already checks that)
+// (ProtectedRoute already checked that)
 //
-// What happens when someone enters this page?
+// When a user enters this room:
 //
-// 1️⃣ We ask: "Who is logged in?"
-// 2️⃣ We take their TOKEN (gym ID card 🎟️)
-// 3️⃣ We call the backend to get members
-// 4️⃣ We show members on the screen
-// 5️⃣ Admin can:
+// 1️⃣ Security office gives us the TOKEN (ID card 🎟️)
+// 2️⃣ We call backend to get members list
+// 3️⃣ We show all members
+// 4️⃣ Admin can:
 //    - Add a new member
 //    - Edit an existing member
 //    - Delete a member
+//    - Logout and leave the gym 🚪
 //
 // This page DOES NOT:
 // ❌ Create tokens
 // ❌ Verify tokens
-// ❌ Talk directly to database
+// ❌ Talk directly to the database
 //
 // It ONLY:
-// ✅ Shows data
+// ✅ Displays data
 // ✅ Sends actions to backend
 // --------------------------------------------------
 
 import { useEffect, useState } from "react";
+
+// Security office 🔐
 import { useAuth } from "../../auth/context/AuthContext";
 
-// Backend communication functions
+// Exit door 🚪
+import LogoutButton from "../../shared/components/LogoutButton";
+
+// Backend communication
 import {
   getMembers,
   updateMember,
   deleteMember,
 } from "./membersApi";
 
-// Add Member form component
+// Reception desk 🧾
 import AddMember from "./AddMember";
 
 // --------------------------------------------------
-// TYPE: How one member looks in frontend
+// TYPE: Shape of one member in frontend
 // --------------------------------------------------
 type Member = {
   id: number;
@@ -58,8 +63,7 @@ export default function MembersPage() {
   // ------------------------------------------------
   // STEP 1️⃣: Get token from AuthContext
   // ------------------------------------------------
-  // AuthContext is our SECURITY OFFICE 🔐
-  // It remembers who is logged in
+  // This token proves the user is logged in
   const { token } = useAuth();
 
   // ------------------------------------------------
@@ -84,15 +88,16 @@ export default function MembersPage() {
     /*
       STORY:
       - Page opens
-      - We show members
-      - We need data from backend
+      - We need members list
+      - Token is sent to backend
+      - Backend verifies & returns data
     */
 
-    if (!token) return; // Safety check
+    if (!token) return;
 
     const data = await getMembers(token);
 
-    // Backend sends rows → we convert to objects
+    // Backend sends rows → convert to readable objects
     const formattedMembers = data.map((row: any) => ({
       id: row[0],
       name: row[1],
@@ -117,9 +122,9 @@ export default function MembersPage() {
   const startEdit = (member: Member) => {
     /*
       STORY:
-      - Admin clicks "Edit"
-      - We switch this member into edit mode
-      - We preload existing data into form
+      - Admin clicks "Edit ✏️"
+      - That row switches to edit mode
+      - Existing data fills the form
     */
 
     setEditingId(member.id);
@@ -137,9 +142,9 @@ export default function MembersPage() {
     /*
       STORY:
       - Admin clicks "Save"
-      - We send updated data to backend
-      - Backend updates DB
-      - We reload members list
+      - Updated data goes to backend
+      - Backend updates database
+      - We refresh the list
     */
 
     if (!token) return;
@@ -156,8 +161,8 @@ export default function MembersPage() {
   const removeMember = async (memberId: number) => {
     /*
       STORY:
-      - Admin clicks "Delete"
-      - We ask for confirmation
+      - Admin clicks "Delete 🗑️"
+      - Confirmation appears
       - Backend deletes member
       - UI refreshes
     */
@@ -179,6 +184,9 @@ export default function MembersPage() {
   // ------------------------------------------------
   return (
     <div>
+      {/* Exit door */}
+      <LogoutButton />
+
       <h2>Gym Members 💪</h2>
 
       {/* Reception desk to add new members */}
@@ -247,15 +255,22 @@ export default function MembersPage() {
 // --------------------------------------------------
 // FINAL STORY SUMMARY 📖
 //
-// MembersPage is the CONTROL CENTER:
+// MembersPage is the CONTROL ROOM:
 //
-// - Shows all members
+// - Shows members
 // - Adds members
 // - Edits members
 // - Deletes members
+// - Allows logout
 //
-// Backend does security & DB
-// Frontend does interaction & display
+// Backend handles:
+// - Security
+// - Token validation
+// - Database
 //
-// This is REAL-WORLD CRUD logic.
+// Frontend handles:
+// - UI
+// - User interaction
+//
+// This is REAL FULL-STACK CRUD.
 // --------------------------------------------------

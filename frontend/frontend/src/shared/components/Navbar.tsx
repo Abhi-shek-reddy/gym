@@ -3,7 +3,7 @@
 // - App name
 // - Logout button
 
-import useAuth from "../../auth/hooks/useAuth";
+import { useAuth } from "../../auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {

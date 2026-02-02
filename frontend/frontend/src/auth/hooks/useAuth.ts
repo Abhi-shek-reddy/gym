@@ -1,15 +1,24 @@
-// This file is a SHORTCUT 🔁
-// Instead of importing AuthContext everywhere
-// We just call useAuth()
+// --------------------------------------------------
+// useAuth.ts 🔐
+// --------------------------------------------------
+//
+// STORY:
+//
+// This file is a SMALL HELPING DOOR 🚪
+//
+// Instead of every component going directly to
+// AuthContext, they use this helper.
+//
+// It simply says:
+// "Go to the Security Office (AuthContext)
+//  and bring me the auth details"
+//
+// This keeps imports clean and simple.
+// --------------------------------------------------
 
-import { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth as useAuthFromContext } from "../context/AuthContext";
 
-export default function useAuth() {
-
-  // Read data from Auth brain
-  return useContext(AuthContext);
+export function useAuth() {
+  return useAuthFromContext();
 }
 
-// useAuth = remote control
-// Press it → get login info
