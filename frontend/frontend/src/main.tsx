@@ -16,6 +16,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import App from "./app/App";
 import { AuthProvider } from "./auth/context/AuthContext";
+import "./styles/global.css";
 
 // --------------------------------------------------
 // STEP 1️⃣: Find the empty room

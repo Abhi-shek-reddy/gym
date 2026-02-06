@@ -1,57 +1,44 @@
-// This is the TOP BAR of our app 🧭
-// It shows:
-// - App name
-// - Logout button
+// --------------------------------------------------
+// Navbar.tsx 🧭
+// --------------------------------------------------
+//
+// STORY:
+//
+// This component is the NAVIGATION BAR of the gym app.
+//
+// It is always visible on protected pages.
+// It helps users:
+// - Move between rooms (Dashboard, Members)
+// - Logout and leave the gym 🚪
+//
+// This component:
+// ❌ Does NOT manage auth logic
+// ❌ Does NOT talk to backend
+// ✅ Only guides navigation
+// --------------------------------------------------
 
-import { useAuth } from "../../auth/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import LogoutButton from "./LogoutButton";
 
 export default function Navbar() {
-
-  // Get logout function
-  const { logout, user } = useAuth();
-
-  // To move user to login page
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-
-    /*
-      User clicked LOGOUT
-
-      So we:
-      1. Clear login memory
-      2. Remove data from storage
-      3. Send user to login page
-    */
-
-    logout();
-    navigate("/");
-  };
-
   return (
-    <div style={{ background: "#222", color: "white", padding: "10px" }}>
+    <div className="top-bar">
+      {/* Gym brand / logo */}
+      <h2>🏋️ Gym Manager</h2>
 
-      {/* App name */}
-      <span>🏋️ Gym Management</span>
+      {/* Navigation links */}
+      <div>
+        <Link to="/dashboard" style={{ marginRight: "15px" }}>
+          Dashboard
+        </Link>
 
-      {/* Welcome user */}
-      <span style={{ marginLeft: "20px" }}>
-        Hello, {user?.name}
-      </span>
+        <Link to="/members" style={{ marginRight: "15px" }}>
+          Members
+        </Link>
 
-      {/* Logout button */}
-      <button
-        style={{ float: "right" }}
-        onClick={handleLogout}
-      >
-        Logout
-      </button>
-
+        {/* Exit door */}
+        <LogoutButton />
+      </div>
     </div>
   );
 }
-
-// Navbar is receptionist
-// It says hello
-// Gives logout button

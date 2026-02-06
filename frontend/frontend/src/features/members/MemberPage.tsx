@@ -4,53 +4,29 @@
 //
 // STORY:
 //
-// This file represents the MEMBERS ROOM of the gym.
+// This page is the MEMBERS ROOM of the gym.
 //
-// Only logged-in users can enter this room.
-// (ProtectedRoute already checked that)
+// Only logged-in users can enter here.
+// When someone enters:
 //
-// When a user enters this room:
-//
-// 1️⃣ Security office gives us the TOKEN (ID card 🎟️)
-// 2️⃣ We call backend to get members list
-// 3️⃣ We show all members
+// 1️⃣ Security gives us the TOKEN 🎟️
+// 2️⃣ We fetch members from backend
+// 3️⃣ We show members in clean cards
 // 4️⃣ Admin can:
-//    - Add a new member
-//    - Edit an existing member
-//    - Delete a member
-//    - Logout and leave the gym 🚪
+//    - Add member
+//    - Edit member
+//    - Delete member
+//    - Logout 🚪
 //
-// This page DOES NOT:
-// ❌ Create tokens
-// ❌ Verify tokens
-// ❌ Talk directly to the database
-//
-// It ONLY:
-// ✅ Displays data
-// ✅ Sends actions to backend
+// Styling is handled by global.css
 // --------------------------------------------------
 
 import { useEffect, useState } from "react";
-
-// Security office 🔐
-import { useAuth } from "../../auth/context/AuthContext";
-
-// Exit door 🚪
+import { useAuth } from "../../auth/hooks/useAuth";
 import LogoutButton from "../../shared/components/LogoutButton";
-
-// Backend communication
-import {
-  getMembers,
-  updateMember,
-  deleteMember,
-} from "./membersApi";
-
-// Reception desk 🧾
 import AddMember from "./AddMember";
+import { getMembers, updateMember, deleteMember } from "./membersApi";
 
-// --------------------------------------------------
-// TYPE: Shape of one member in frontend
-// --------------------------------------------------
 type Member = {
   id: number;
   name: string;
@@ -60,45 +36,26 @@ type Member = {
 };
 
 export default function MembersPage() {
-  // ------------------------------------------------
-  // STEP 1️⃣: Get token from AuthContext
-  // ------------------------------------------------
-  // This token proves the user is logged in
   const { token } = useAuth();
 
-  // ------------------------------------------------
-  // STEP 2️⃣: Local page state
-  // ------------------------------------------------
   const [members, setMembers] = useState<Member[]>([]);
-
-  // Which member is currently being edited
   const [editingId, setEditingId] = useState<number | null>(null);
 
-  // Temporary form used while editing
   const [editForm, setEditForm] = useState({
     name: "",
     phone: "",
     plan: "Monthly",
   });
 
-  // ------------------------------------------------
-  // STEP 3️⃣: Fetch members from backend
-  // ------------------------------------------------
+  // ----------------------------------------------
+  // Fetch members from backend
+  // ----------------------------------------------
   const fetchMembers = async () => {
-    /*
-      STORY:
-      - Page opens
-      - We need members list
-      - Token is sent to backend
-      - Backend verifies & returns data
-    */
-
     if (!token) return;
 
     const data = await getMembers(token);
 
-    // Backend sends rows → convert to readable objects
-    const formattedMembers = data.map((row: any) => ({
+    const formatted = data.map((row: any) => ({
       id: row[0],
       name: row[1],
       phone: row[2],
@@ -106,27 +63,17 @@ export default function MembersPage() {
       joined_on: row[4],
     }));
 
-    setMembers(formattedMembers);
+    setMembers(formatted);
   };
 
-  // ------------------------------------------------
-  // STEP 4️⃣: Load members when page opens
-  // ------------------------------------------------
   useEffect(() => {
     fetchMembers();
   }, [token]);
 
-  // ------------------------------------------------
-  // STEP 5️⃣: Start editing a member
-  // ------------------------------------------------
+  // ----------------------------------------------
+  // Edit flow
+  // ----------------------------------------------
   const startEdit = (member: Member) => {
-    /*
-      STORY:
-      - Admin clicks "Edit ✏️"
-      - That row switches to edit mode
-      - Existing data fills the form
-    */
-
     setEditingId(member.id);
     setEditForm({
       name: member.name,
@@ -135,74 +82,37 @@ export default function MembersPage() {
     });
   };
 
-  // ------------------------------------------------
-  // STEP 6️⃣: Save edited member
-  // ------------------------------------------------
-  const saveEdit = async (memberId: number) => {
-    /*
-      STORY:
-      - Admin clicks "Save"
-      - Updated data goes to backend
-      - Backend updates database
-      - We refresh the list
-    */
-
+  const saveEdit = async (id: number) => {
     if (!token) return;
-
-    await updateMember(token, memberId, editForm);
-
-    setEditingId(null); // Exit edit mode
-    fetchMembers();     // Refresh list
-  };
-
-  // ------------------------------------------------
-  // STEP 7️⃣: Delete member
-  // ------------------------------------------------
-  const removeMember = async (memberId: number) => {
-    /*
-      STORY:
-      - Admin clicks "Delete 🗑️"
-      - Confirmation appears
-      - Backend deletes member
-      - UI refreshes
-    */
-
-    if (!token) return;
-
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this member?"
-    );
-
-    if (!confirmDelete) return;
-
-    await deleteMember(token, memberId);
+    await updateMember(token, id, editForm);
+    setEditingId(null);
     fetchMembers();
   };
 
-  // ------------------------------------------------
-  // STEP 8️⃣: UI Rendering
-  // ------------------------------------------------
+  // ----------------------------------------------
+  // Delete flow
+  // ----------------------------------------------
+  const removeMember = async (id: number) => {
+    if (!token) return;
+    if (!confirm("Delete this member?")) return;
+    await deleteMember(token, id);
+    fetchMembers();
+  };
+
   return (
-    <div>
-      {/* Exit door */}
-      <LogoutButton />
+    <div className="container">
+      {/* Top bar */}
+      <div className="top-bar">
+        <h2>Gym Members 💪</h2>
+        <LogoutButton />
+      </div>
 
-      <h2>Gym Members 💪</h2>
-
-      {/* Reception desk to add new members */}
+      {/* Add member section */}
       <AddMember onMemberAdded={fetchMembers} />
 
       {/* Members list */}
       {members.map((member) => (
-        <div
-          key={member.id}
-          style={{
-            border: "1px solid #ccc",
-            padding: "10px",
-            marginBottom: "10px",
-          }}
-        >
-          {/* EDIT MODE */}
+        <div key={member.id} className="card">
           {editingId === member.id ? (
             <>
               <input
@@ -225,25 +135,32 @@ export default function MembersPage() {
                   setEditForm({ ...editForm, plan: e.target.value })
                 }
               >
-                <option value="Monthly">Monthly</option>
-                <option value="Quarterly">Quarterly</option>
-                <option value="Yearly">Yearly</option>
+                <option>Monthly</option>
+                <option>Quarterly</option>
+                <option>Yearly</option>
               </select>
 
-              <br />
-
-              <button onClick={() => saveEdit(member.id)}>Save ✅</button>
-              <button onClick={() => setEditingId(null)}>Cancel ❌</button>
+              <button onClick={() => saveEdit(member.id)}>Save</button>
+              <button
+                className="secondary"
+                onClick={() => setEditingId(null)}
+              >
+                Cancel
+              </button>
             </>
           ) : (
-            /* VIEW MODE */
             <>
               <p><strong>Name:</strong> {member.name}</p>
               <p><strong>Phone:</strong> {member.phone}</p>
               <p><strong>Plan:</strong> {member.plan}</p>
 
-              <button onClick={() => startEdit(member)}>Edit ✏️</button>
-              <button onClick={() => removeMember(member.id)}>Delete 🗑️</button>
+              <button onClick={() => startEdit(member)}>Edit</button>
+              <button
+                className="danger"
+                onClick={() => removeMember(member.id)}
+              >
+                Delete
+              </button>
             </>
           )}
         </div>
@@ -251,26 +168,3 @@ export default function MembersPage() {
     </div>
   );
 }
-
-// --------------------------------------------------
-// FINAL STORY SUMMARY 📖
-//
-// MembersPage is the CONTROL ROOM:
-//
-// - Shows members
-// - Adds members
-// - Edits members
-// - Deletes members
-// - Allows logout
-//
-// Backend handles:
-// - Security
-// - Token validation
-// - Database
-//
-// Frontend handles:
-// - UI
-// - User interaction
-//
-// This is REAL FULL-STACK CRUD.
-// --------------------------------------------------
